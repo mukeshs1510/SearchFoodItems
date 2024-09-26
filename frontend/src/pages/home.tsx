@@ -3,7 +3,7 @@ import FoodCard from "../components/FoodCard";
 import LoadingSpinner from "../components/Loading";
 import useApiFetch from "../hooks/useApiFetch";
 import { FoodsData } from "../types/foodDataType";
-import { FilterIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, FilterIcon } from "lucide-react";
 
 const Home = () => {
     const [apiEndPoint, setApiEndPoint] = useState("/food/items");
@@ -18,9 +18,11 @@ const Home = () => {
     });
     const [showSearchFilter, setShowSearchFilter] = useState(false);
     const [sortOption, setSortOption] = useState({
-        criterion: "prep_time", // or 'cook_time'
-        order: "asc", // or 'desc'
+        criterion: "prep_time",
+        order: "asc",
     });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(12);
     const { data, loading, error } = useApiFetch<FoodsData>(apiEndPoint);
 
     const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
@@ -78,6 +80,7 @@ const Home = () => {
         const { name, value } = event.target;
         setSortOption((prev) => ({ ...prev, [name]: value }));
     };
+
     const sortedData = data?.slice().sort((a, b) => {
         const criterion = sortOption.criterion as "prep_time" | "cook_time";
         const order = sortOption.order === "asc" ? 1 : -1;
@@ -87,6 +90,24 @@ const Home = () => {
 
         return order * (+aValue - +bValue);
     });
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = sortedData?.slice(indexOfFirstItem, indexOfLastItem);
+
+    const totalPages = Math.ceil((sortedData?.length || 0) / itemsPerPage);
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage((prevPage) => prevPage + 1);
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage((prevPage) => prevPage - 1);
+        }
+    };
 
     return (
         <>
@@ -209,14 +230,42 @@ const Home = () => {
                 </select>
             </div>
 
-            {sortedData && sortedData.length > 0 ? (
+            {currentItems && currentItems.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2 m-2">
-                    {sortedData.map((item, index) => (
+                    {currentItems.map((item, index) => (
                         <FoodCard key={index} foodData={item} />
                     ))}
                 </div>
             ) : (
                 <p className="text-center text-4xl my-2">No Data Found!</p>
+            )}
+
+            {/* Pagination Controls */}
+            {sortedData && sortedData.length > itemsPerPage && (
+                <div className="flex justify-end gap-4 mt-8 mb-4 me-2">
+                    <button
+                        onClick={handlePrevPage}
+                        disabled={currentPage === 1}
+                        className={`px-4 py-2 rounded-lg ${
+                            currentPage === 1
+                                ? "bg-gray-300"
+                                : "bg-blue-700 text-white"
+                        }`}
+                    >
+                        <ArrowLeft />
+                    </button>
+                    <button
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages}
+                        className={`px-4 py-2 rounded-lg ${
+                            currentPage === totalPages
+                                ? "bg-gray-300"
+                                : "bg-blue-700 text-white"
+                        }`}
+                    >
+                        <ArrowRight />
+                    </button>
+                </div>
             )}
             {error && <p>Error: {error.message}</p>}
         </>
