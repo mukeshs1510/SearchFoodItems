@@ -4,7 +4,8 @@ import App from "./App.tsx";
 import "./index.css";
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:5000/api/v1";
+// axios.defaults.baseURL = "http://localhost:5000/api/v1";
+axios.defaults.baseURL = "https://searchfooditems.onrender.com/api/v1";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>

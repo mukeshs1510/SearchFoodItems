@@ -237,7 +237,9 @@ const Home = () => {
                     ))}
                 </div>
             ) : (
-                <p className="text-center text-4xl my-2">No Data Found!</p>
+                !loading && (
+                    <p className="text-center text-4xl my-2">No Data Found!</p>
+                )
             )}
 
             {/* Pagination Controls */}
