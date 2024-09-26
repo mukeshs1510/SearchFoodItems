@@ -17,6 +17,10 @@ const Home = () => {
         value: "",
     });
     const [showSearchFilter, setShowSearchFilter] = useState(false);
+    const [sortOption, setSortOption] = useState({
+        criterion: "prep_time", // or 'cook_time'
+        order: "asc", // or 'desc'
+    });
     const { data, loading, error } = useApiFetch<FoodsData>(apiEndPoint);
 
     const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
@@ -69,6 +73,20 @@ const Home = () => {
     const toggleSearchFilter = () => {
         setShowSearchFilter((prev) => !prev);
     };
+
+    const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const { name, value } = event.target;
+        setSortOption((prev) => ({ ...prev, [name]: value }));
+    };
+    const sortedData = data?.slice().sort((a, b) => {
+        const criterion = sortOption.criterion as "prep_time" | "cook_time";
+        const order = sortOption.order === "asc" ? 1 : -1;
+
+        const aValue = a[criterion];
+        const bValue = b[criterion];
+
+        return order * (+aValue - +bValue);
+    });
 
     return (
         <>
@@ -169,9 +187,31 @@ const Home = () => {
                 </div>
             )}
 
-            {data && data.length > 0 ? (
+            {/* Sorting Controls */}
+            <div className="flex justify-end gap-4 my-4 me-2">
+                <select
+                    name="criterion"
+                    value={sortOption.criterion}
+                    onChange={handleSortChange}
+                    className="border rounded-lg p-2"
+                >
+                    <option value="prep_time">Prep Time</option>
+                    <option value="cook_time">Cook Time</option>
+                </select>
+                <select
+                    name="order"
+                    value={sortOption.order}
+                    onChange={handleSortChange}
+                    className="border rounded-lg p-2"
+                >
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+
+            {sortedData && sortedData.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2 m-2">
-                    {data.map((item, index) => (
+                    {sortedData.map((item, index) => (
                         <FoodCard key={index} foodData={item} />
                     ))}
                 </div>

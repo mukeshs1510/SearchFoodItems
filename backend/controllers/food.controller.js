@@ -24,14 +24,38 @@ class DataController {
                     .includes(s.toString().toLowerCase())
             );
 
-            const ingredientMatches = data.filter((item) =>
-                item["ingredients"]
+            const stateMatches = data.filter((item) =>
+                item["state"]
                     .toString()
                     .toLowerCase()
                     .includes(s.toString().toLowerCase())
             );
 
-            filteredData = [...new Set([...nameMatches, ...ingredientMatches])];
+            const ingredientMatches = data.filter((item) => {
+                const ingredientsArray = item["ingredients"]
+                    .toString()
+                    .toLowerCase()
+                    .split(",")
+                    .map((ing) => ing.trim());
+                const searchTerms = s
+                    .toString()
+                    .toLowerCase()
+                    .split(",")
+                    .map((term) => term.trim());
+                return searchTerms.every((term) =>
+                    ingredientsArray.some((ingredient) =>
+                        ingredient.includes(term)
+                    )
+                );
+            });
+
+            filteredData = [
+                ...new Set([
+                    ...nameMatches,
+                    ...stateMatches,
+                    ...ingredientMatches,
+                ]),
+            ];
         }
 
         filteredData = applyFilters(filteredData, { prep_time, cook_time });
